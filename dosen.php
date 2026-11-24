@@ -1,7 +1,13 @@
 <?php
+session_start();
 include 'koneksi.php';
 
-// 1. PROSES TAMBAH DOSEN (CREATE)
+if (isset($_GET['logout'])) {
+    session_destroy();
+    header("Location: login.php");
+    exit;
+}
+
 if (isset($_POST['tambah'])) {
     $nip      = mysqli_real_escape_string($koneksi, $_POST['nip']);
     $nama     = mysqli_real_escape_string($koneksi, $_POST['nama']);
@@ -20,7 +26,6 @@ if (isset($_POST['tambah'])) {
     }
 }
 
-// 2. PROSES EDIT DOSEN (UPDATE)
 if (isset($_POST['edit'])) {
     $id       = intval($_POST['id']);
     $nip      = mysqli_real_escape_string($koneksi, $_POST['nip']);
@@ -35,7 +40,6 @@ if (isset($_POST['edit'])) {
     }
 }
 
-// 3. PROSES HAPUS DOSEN (DELETE)
 if (isset($_GET['hapus'])) {
     $id = intval($_GET['hapus']);
     $query = "DELETE FROM dosen WHERE id='$id'";
@@ -44,7 +48,6 @@ if (isset($_GET['hapus'])) {
     }
 }
 
-// 4. PENCARIAN & TAMPIL DATA (READ & SEARCH)
 $keyword = "";
 if (isset($_GET['cari']) && $_GET['cari'] != "") {
     $keyword = mysqli_real_escape_string($koneksi, $_GET['cari']);
@@ -69,17 +72,25 @@ $result_dosen = mysqli_query($koneksi, $query_tampil);
 </head>
 <body class="bg-slate-100 min-h-screen text-slate-800 flex">
 
+  <!-- OVERLAY MOBILE -->
+  <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-slate-900/60 z-30 hidden md:hidden"></div>
+
   <!-- SIDEBAR DOSEN -->
-  <aside class="w-64 bg-slate-900 text-white flex flex-col justify-between p-4 min-h-screen shrink-0">
+  <aside id="sidebar" class="fixed md:static inset-y-0 left-0 z-40 w-64 bg-slate-900 text-white flex flex-col justify-between p-4 min-h-screen shrink-0 transform -translate-x-full md:translate-x-0 transition-transform duration-200 ease-in-out">
     <div>
-      <div class="flex items-center gap-3 px-3 py-4 mb-4 border-b border-slate-800">
-        <div class="bg-blue-600 p-2 rounded-xl text-white">
-          <i data-lucide="graduation-cap" class="w-6 h-6"></i>
+      <div class="flex items-center justify-between px-3 py-4 mb-4 border-b border-slate-800">
+        <div class="flex items-center gap-3">
+          <div class="bg-blue-600 p-2 rounded-xl text-white">
+            <i data-lucide="graduation-cap" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <h1 class="font-bold text-lg leading-tight tracking-wide">DEVAKAD</h1>
+            <p class="text-xs text-slate-400 font-medium">Dashboard Dosen</p>
+          </div>
         </div>
-        <div>
-          <h1 class="font-bold text-lg leading-tight tracking-wide">DEVAKAD</h1>
-          <p class="text-xs text-slate-400 font-medium">Dashboard Dosen</p>
-        </div>
+        <button type="button" onclick="toggleSidebar()" class="md:hidden p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800" aria-label="Tutup menu">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
       </div>
 
       <nav class="space-y-1">
@@ -101,14 +112,13 @@ $result_dosen = mysqli_query($koneksi, $query_tampil);
         <a href="cetak_khs.php" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-slate-800 hover:text-white font-medium text-sm transition">
           <i data-lucide="file-text" class="w-5 h-5"></i> Cetak KHS
         </a>
-        <!-- Tombol Logout Dosen -->
-        <a href="login.php?logout=true" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-rose-300 hover:bg-rose-950/50 hover:text-rose-200 font-medium text-sm transition mt-4 border border-rose-900/50">
+        <a href="dosen.php?logout=true" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-rose-300 hover:bg-rose-950/50 hover:text-rose-200 font-medium text-sm transition mt-4 border border-rose-900/50">
           <i data-lucide="log-out" class="w-5 h-5"></i> Keluar (Logout)
         </a>
       </nav>
     </div>
 
-    <div class="bg-gradient-to-br from-blue-900 to-indigo-950 p-4 rounded-2xl border border-blue-800/50 text-center">
+    <div class="bg-gradient-to-br from-blue-900 to-indigo-950 p-4 rounded-2xl border border-blue-800/50 text-center mt-6">
       <div class="w-10 h-10 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-2 text-emerald-400">
         <i data-lucide="database" class="w-5 h-5"></i>
       </div>
@@ -118,22 +128,32 @@ $result_dosen = mysqli_query($koneksi, $query_tampil);
   </aside>
 
   <!-- MAIN CONTENT -->
-  <main class="flex-1 p-8 overflow-y-auto space-y-6">
+  <main class="flex-1 p-4 sm:p-8 overflow-y-auto space-y-6 min-w-0">
+    <!-- HEADER MOBILE -->
+    <div class="flex md:hidden items-center justify-between bg-slate-900 text-white px-4 py-3 rounded-2xl">
+      <div class="flex items-center gap-2 font-bold text-sm">
+        <i data-lucide="graduation-cap" class="w-5 h-5 text-blue-400"></i>
+        <span>DEVAKAD</span>
+      </div>
+      <button type="button" onclick="toggleSidebar()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white" aria-label="Buka atau tutup menu">
+        <i data-lucide="menu" class="w-5 h-5"></i>
+      </button>
+    </div>
+
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
       <div>
-        <h2 class="text-2xl font-bold text-slate-900">DATA DOSEN PENGAMPU</h2>
+        <h2 class="text-xl sm:text-2xl font-bold text-slate-900">DATA DOSEN PENGAMPU</h2>
         <p class="text-xs text-slate-500">Kelola akun dan hak akses dosen pengajar sistem akademik.</p>
       </div>
-      <button onclick="toggleModal('modal-tambah', true)" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 shadow-sm transition">
+      <button type="button" onclick="toggleModal('modal-tambah', true)" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-sm transition w-full md:w-auto">
         <i data-lucide="user-plus" class="w-4 h-4"></i> Tambah Dosen Baru
       </button>
     </div>
 
     <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-      <!-- Search Bar -->
       <div class="p-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <form method="GET" action="dosen.php" class="flex items-center gap-2">
-          <div class="relative w-72">
+        <form method="GET" action="dosen.php" class="flex flex-wrap items-center gap-2">
+          <div class="relative w-full sm:w-72">
             <input type="text" name="cari" value="<?php echo htmlspecialchars($keyword); ?>" placeholder="Cari NIP atau Nama Dosen..." class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl pl-9 pr-3 py-2 focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none">
             <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5"></i>
           </div>
@@ -145,7 +165,6 @@ $result_dosen = mysqli_query($koneksi, $query_tampil);
         <span class="text-xs text-slate-400 font-medium">Total: <?php echo mysqli_num_rows($result_dosen); ?> Dosen</span>
       </div>
 
-      <!-- Tabel Dosen -->
       <div class="overflow-x-auto">
         <table class="w-full text-left text-xs text-slate-600">
           <thead class="bg-slate-900 text-white uppercase text-[10px] tracking-wider">
@@ -165,12 +184,12 @@ $result_dosen = mysqli_query($koneksi, $query_tampil);
                     ?>
                     <tr class="hover:bg-slate-50">
                       <td class="py-3 px-4 font-semibold"><?php echo $no++; ?></td>
-                      <td class="py-3 px-4 font-mono font-bold text-slate-700"><?php echo $row['nip']; ?></td>
-                      <td class="py-3 px-4 font-bold text-slate-800"><?php echo $row['nama']; ?></td>
-                      <td class="py-3 px-4 font-mono text-slate-500"><?php echo $row['password']; ?></td>
-                      <td class="py-3 px-4 text-center">
-                        <button type="button" onclick="bukaModalEdit('<?php echo $row['id']; ?>', '<?php echo $row['nip']; ?>', '<?php echo addslashes($row['nama']); ?>', '<?php echo $row['password']; ?>')" class="text-blue-600 hover:underline font-semibold mr-3">Edit</button>
-                        <a href="dosen.php?hapus=<?php echo $row['id']; ?>" onclick="return confirm('Yakin ingin menghapus dosen <?php echo addslashes($row['nama']); ?>?')" class="text-rose-500 hover:underline font-semibold">Hapus</a>
+                      <td class="py-3 px-4 font-mono font-bold text-slate-700"><?php echo htmlspecialchars($row['nip']); ?></td>
+                      <td class="py-3 px-4 font-bold text-slate-800"><?php echo htmlspecialchars($row['nama']); ?></td>
+                      <td class="py-3 px-4 font-mono text-slate-500"><?php echo htmlspecialchars($row['password']); ?></td>
+                      <td class="py-3 px-4 text-center whitespace-nowrap">
+                        <button type="button" onclick="bukaModalEdit('<?php echo $row['id']; ?>', '<?php echo htmlspecialchars($row['nip'], ENT_QUOTES); ?>', '<?php echo htmlspecialchars($row['nama'], ENT_QUOTES); ?>', '<?php echo htmlspecialchars($row['password'], ENT_QUOTES); ?>')" class="text-blue-600 hover:underline font-semibold mr-3">Edit</button>
+                        <a href="dosen.php?hapus=<?php echo $row['id']; ?>" onclick="return confirm('Yakin ingin menghapus dosen ini?')" class="text-rose-500 hover:underline font-semibold">Hapus</a>
                       </td>
                     </tr>
                     <?php
@@ -238,6 +257,12 @@ $result_dosen = mysqli_query($koneksi, $query_tampil);
 
   <script>
     lucide.createIcons();
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebar-overlay');
+      sidebar.classList.toggle('-translate-x-full');
+      overlay.classList.toggle('hidden');
+    }
     function toggleModal(modalId, show) {
       document.getElementById(modalId).classList.toggle('hidden', !show);
     }
