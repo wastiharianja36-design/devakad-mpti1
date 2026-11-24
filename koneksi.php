@@ -1,8 +1,8 @@
 <?php
-$host     = "sql213.infinityfree.com";
-$user     = "if0_43512059";
-$password = "XuzrgzckDX"; 
-$database = "if0_43512059_db_MPTI";
+$host     = "localhost";
+$user     = "root";
+$password = "";
+$database = "devakad1_db";
 
 $koneksi = mysqli_connect($host, $user, $password, $database);
 
