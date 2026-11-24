@@ -1,5 +1,9 @@
 <?php
 session_start();
+if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'dosen') {
+    header("Location: login.php");
+    exit;
+}
 include 'koneksi.php';
 
 if (isset($_GET['logout'])) {

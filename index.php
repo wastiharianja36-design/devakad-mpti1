@@ -1,8 +1,15 @@
+
 <?php
 session_start();
 include 'koneksi.php';
 
+if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'dosen') {
+    header("Location: login.php");
+    exit;
+}
+
 if (isset($_GET['logout'])) {
+    session_unset();
     session_destroy();
     header("Location: login.php");
     exit;
@@ -12,7 +19,7 @@ $jml_mhs = 0;
 $jml_mk = 0;
 $jml_nilai = 0;
 
-if (isset($koneksi) && !$koneksi->connect_error) {
+if ($koneksi) {
     $q_mhs = mysqli_query($koneksi, "SELECT COUNT(*) AS total FROM mahasiswa");
     if ($q_mhs && $r = mysqli_fetch_assoc($q_mhs)) {
         $jml_mhs = (int)$r['total'];
